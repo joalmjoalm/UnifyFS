@@ -278,7 +278,5 @@ unifyfs_rc unifyfs_map_sync(unifyfs_handle fshdl,
                             const void* addr);
 ```
 
-### References
-
 [1]: https://unifyfs.readthedocs.io/en/v0.9.0/overview.html
 [2]: https://unifyfs.readthedocs.io/en/v0.9.0/assumptions.html#consistency-model
