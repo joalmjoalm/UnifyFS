@@ -1,15 +1,23 @@
 # UnifyFS Client API
 
-This document describes the background and motivation for the development of a new client application programming interface (API) for _UnifyFS_, including key design choices that were made. The current API, along with brief documentation on intended
+This document describes the background and motivation for the development of a new client application programming interface (API) for [_UnifyFS_][1], including key design choices that were made. The current API, along with brief documentation on intended
 usage, is also presented. Finally, potential useful additions to the API are proposed.
 
 ## Background
 
-
+_UnifyFS_ was originally designed to enable direct integration within user applications based on POSIX I/O or MPI-IO. Interposition on the application's existing I/O operations was chosen as the most seamless method, as it requires the least amount of changes to application source code. The only source modifications necessary were to insert calls to `unifyfs_mount()` and `unifyfs_unmount()` at the beginning and end (respectively) of your application. With these two simple additions, applications could just prepend `/unifyfs` to their existing file paths to make use of the unified storage space.
 
 ## Motivation
 
+Although the original design accomplished its goal of easy application integration, the resulting client library code was not developed in a modular fashion that exposed clean internal APIs for core functionality such as file I/O. The lack of modularity has limited the ability of _UnifyFS_ to explore additional integrations that would increase its usability.
 
+For example, existing commonly-used distributed I/O storage libraries such as HDF5 and ADIOS have modular designs that permit implementation of new storage backend technologies, but _UnifyFS_ provided no API that could be leveraged to support such developments.
+
+Further, users had no way of exploring the _UnifyFS_ namespace from outside of their applications, since common system tools (e.g., Unix shells and file system commands) could not be used without explicitly modifying their source code. The _UnifyFS_ team has explored various options to provide system tools (e.g., FUSE and custom command-line tools), but initial development on these approaches stalled due to the lack of appropriate APIs.
+
+Finally, using interposition as the only means of affecting application I/O behavior meant that important _UnifyFS_ semantics, particularly [file lamination][2], required hijacking existing system calls like `fsync()` and `chmod()` to impart new meaning to their use in applications. For many applications, these system calls were not already used, and thus had to be added to the source code to effect the desired behavior.
+
+Together, these limitations motivated our desire to define a new client API that provided the required interfaces for these use cases, as well as potential future uses.
 
 ## Design Choices
 
@@ -270,4 +278,7 @@ unifyfs_rc unifyfs_map_sync(unifyfs_handle fshdl,
                             const void* addr);
 ```
 
+### References
 
+[1]: https://unifyfs.readthedocs.io/en/v0.9.0/overview.html
+[2]: https://unifyfs.readthedocs.io/en/v0.9.0/assumptions.html#consistency-model
