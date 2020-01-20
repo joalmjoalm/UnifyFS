@@ -11,7 +11,7 @@ _UnifyFS_ was originally designed to enable direct integration within user appli
 
 Although the original design accomplished its goal of easy application integration, the resulting client library code was not developed in a modular fashion that exposed clean internal APIs for core functionality such as file I/O. The lack of modularity has limited the ability of _UnifyFS_ to explore additional integrations that would increase its usability.
 
-For example, existing commonly-used distributed I/O storage libraries such as HDF5 and ADIOS have modular designs that permit implementation of new storage backend technologies, but _UnifyFS_ provided no API that could be leveraged to support such developments.
+For example, existing commonly used distributed I/O storage libraries such as HDF5 and ADIOS have modular designs that permit implementation of new storage backend technologies, but _UnifyFS_ provided no API that could be leveraged to support such developments.
 
 Further, users had no way of exploring the _UnifyFS_ namespace from outside of their applications, since common system tools (e.g., Unix shells and file system commands) could not be used without explicitly modifying their source code. The _UnifyFS_ team has explored various options to provide system tools (e.g., FUSE and custom command-line tools), but initial development on these approaches stalled due to the lack of appropriate APIs.
 
@@ -21,11 +21,11 @@ Together, these limitations motivated our desire to define a new client API that
 
 ## Design Choices
 
-<ul>
- <li> Expose UnifyFS semantics and control knobs
- <li> POSIX I/O independence
- <li> Asynchrounous operations
-</ul>
+The primary goal in providing a new client API is to expose all core functionality of _UnifyFS_. This functionality includes methods for file access, file I/O, file lamination, and file transfers. Additionally, _UnifyFS_ provides some user control over its behavior. Some of this behavior is already exposed via existing configuration settings that can be controlled by clients using environment variables. Where appropriate, it is useful to provide explicit control mechanisms in the API as well.
+
+Although POSIX I/O and MPI-IO are the most common use cases for _UnifyFS_, it is important that the client API does not contain semantics specific to those storage strategies, as that could impose unnecessary limitations for other use cases. In particular, this means that implicit state such as that found in POSIX file descriptors (e.g., file position) or MPI-IO (e.g., collective file handles and communicators) should be avoided.
+
+Finally, _UnifyFS_ utilizes a multi-threaded runtime system that operates asynchronously from client actions. Exposing this asynchrony at the API level is beneficial for applications that can overlap I/O with computation. For this reason, we have chosen to use asynchronous requests as the basis for both file I/O and transfers.
 
 ## Current API
 
