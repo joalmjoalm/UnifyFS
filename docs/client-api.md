@@ -219,14 +219,20 @@ unifyfs_rc unifyfs_wait_io(unifyfs_handle fshdl,
 
 ### File Lamination
 
-```C
-/* Local lamination - all client writes have been completed */
-unifyfs_rc unifyfs_laminate_local(unifyfs_handle fshdl,
-                                  const unifyfs_gfid gfid);
+File lamination designates that no further writes are allowed. The API provides two methods related to lamination.
 
+The first method, `unifyfs_laminate()`, indicates that the file at the given path is to be laminated globally. This method should be used by a single client once all clients have completed their writes. After this method returns successfully, no clients will be permitted to write to the file, and the file status will reflect its laminated state.
+
+The second method, `unifyfs_laminate_local()`, informs the local server that the calling client will no longer write to the file. At this point, the server is free to propagate information about the client's writes to other servers. Note that calling this method is entirely optional, and a client's writes are not guaranteed to be visible to other clients until the file is globally laminated.
+
+```C
 /* Global lamination - no further writes to file are permitted */
 unifyfs_rc unifyfs_laminate(unifyfs_handle fshdl,
                             const char* filepath);
+
+/* Local lamination - all client writes have been completed */
+unifyfs_rc unifyfs_laminate_local(unifyfs_handle fshdl,
+                                  const unifyfs_gfid gfid);
 ```
 
 ### File Transfers
