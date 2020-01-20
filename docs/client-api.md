@@ -102,7 +102,7 @@ unifyfs_rc unifyfs_remove(unifyfs_handle fshdl,
 
 ### File Status
 
-The API provides method for querying the status of a _UnifyFS_ file. The `unifyfs_stat()` method collects all available information and stores it within the provided `struct unifyfs_status`. Methods are also provided to query the individual pieces of information, such as `unifyfs_stat_laminated()` that returns the file's lamination status.
+The API provides methods for querying the status of a _UnifyFS_ file. The `unifyfs_stat()` method collects all available information and stores it within the provided `struct unifyfs_status`. Methods are also provided to query the individual pieces of information, such as `unifyfs_stat_laminated()` that returns the file's lamination status.
 
 ```C
 /* File status struct */
