@@ -98,21 +98,56 @@ unifyfs_rc unifyfs_close(unifyfs_handle fshdl,
 /* Remove an existing file from UnifyFS */
 unifyfs_rc unifyfs_remove(unifyfs_handle fshdl,
                           const char* filepath);
+```
 
+### File Status
 
-/* Global file status struct */
+The API provides method for querying the status of a _UnifyFS_ file. The `unifyfs_stat()` method collects all available information and stores it within the provided `struct unifyfs_status`. Methods are also provided to query the individual pieces of information, such as `unifyfs_stat_laminated()` that returns the file's lamination status.
+
+```C
+/* File status struct */
 typedef struct unifyfs_status {
     int laminated;
-    int mode;
     off_t local_file_size;
     off_t global_file_size;
     size_t local_write_nbytes;
 } unifyfs_status;
 
-/* Get global file status */
+/* Get all available file status */
 unifyfs_rc unifyfs_stat(unifyfs_handle fshdl,
                         const unifyfs_gfid gfid,
                         unifyfs_status* status);
+
+/* Get file lamination status */
+unifyfs_rc unifyfs_stat_laminated(unifyfs_handle fshdl,
+                                  const unifyfs_gfid gfid,
+                                  int* is_laminated);
+```
+
+The `unifyfs_stat_global_size()` method returns the currently known maximum valid offset across all servers. If the file has been laminated, this is the final file size.
+
+The `unifyfs_stat_local_size()` method returns the maximum valid offset known by the client's local server. If the file has been laminated, this is the final file size.
+
+```C
+/* Get current global size for file */
+unifyfs_rc unifyfs_stat_global_size(unifyfs_handle fshdl,
+                                    const unifyfs_gfid gfid,
+                                    off_t* global_sz);
+
+/* Get current local size for file */
+unifyfs_rc unifyfs_stat_local_size(unifyfs_handle fshdl,
+                                   const unifyfs_gfid gfid,
+                                   off_t* local_sz);
+```
+
+A client can also query the number of bytes it has written using the `unifyfs_stat_local_write()` method. This is the sum of the lengths of all extents written since opening the file.
+
+```C
+/* Get current local bytes written for file */
+unifyfs_rc unifyfs_stat_local_write(unifyfs_handle fshdl,
+                                    const unifyfs_gfid gfid,
+                                    size_t* local_write_bytes);
+
 ```
 
 ### File I/O
