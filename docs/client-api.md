@@ -75,6 +75,8 @@ To support multiple concurrently active namespaces, a client can manage multiple
 
 ### File Access
 
+TODO
+
 ```C
 /* global file id type */
 typedef int unifyfs_gfid;
@@ -151,6 +153,8 @@ unifyfs_rc unifyfs_stat_local_write(unifyfs_handle fshdl,
 ```
 
 ### File I/O
+
+TODO
 
 ```C
 /* enumeration of supported I/O request operations */
@@ -237,6 +241,8 @@ unifyfs_rc unifyfs_laminate_local(unifyfs_handle fshdl,
 
 ### File Transfers
 
+TODO
+
 ```C
 /* enumeration of supported I/O request operations */
 typedef enum unifyfs_transfer_mode {
@@ -295,6 +301,12 @@ unifyfs_rc unifyfs_finalize(unifyfs_handle fshdl);
 ## Future Functionality
 
 In this section, we describe potential additions to the client API. This functionality may be included in future versions of the API based upon feedback on user requirements.
+
+### Directory Operations
+
+TODO
+
+### Memory Mapped Files
 
 Mapping file data into memory (e.g., using `mmap()`) is a popular approach for maximizing read and write performance. _UnifyFS_ could support this behavior for non-shared files fairly easily. For shared files, it is likely that only non-overlapping mappings could be supported. The proposed APIs for memory mapping _UnifyFS_ files are shown below.
 
