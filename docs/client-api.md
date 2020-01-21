@@ -154,7 +154,15 @@ unifyfs_rc unifyfs_stat_local_write(unifyfs_handle fshdl,
 
 ### File I/O
 
-TODO
+All file I/O in _UnifyFS_ is performed asynchronously. Similar to POSIX asynchronous I/O, requests utilize a structure, `unifyfs_io_request`, that stores the request parameters and can be used for querying the status of the request.
+
+For each request, the client sets the `op` field of the structure to one of the four supported operation types: read, write, truncate, and zero-fill. The `unifyfs_ioreq_op` enumeration shown below defines the valid operation values.
+
+Read and write requests must initialize the `user_buf`, `nbytes`, and `offset` fields of the request structure to designate the destination/source data buffer, byte count, and starting file offset, respectively.
+
+Truncate requests need only initialize the `offset` field, to indicate the desired truncation offset.
+
+Zero-fill requests must initialize the `offset` and `nbytes` files, to specify the extent to be filled with zero bytes.
 
 ```C
 /* enumeration of supported I/O request operations */
@@ -165,21 +173,6 @@ typedef enum unifyfs_ioreq_op {
     UNIFYFS_IOREQ_OP_TRUNC,
     UNIFYFS_IOREQ_OP_ZERO,
 } unifyfs_ioreq_op;
-
-/* enumeration of I/O request states */
-typedef enum unifyfs_ioreq_state {
-    UNIFYFS_IOREQ_STATE_INVALID = 0,
-    UNIFYFS_IOREQ_STATE_IN_PROGRESS,
-    UNIFYFS_IOREQ_STATE_CANCELED,
-    UNIFYFS_IOREQ_STATE_COMPLETED
-} unifyfs_ioreq_state;
-
-/* structure to hold I/O request result values */
-typedef struct unifyfs_ioreq_result {
-    int error;
-    int rc;
-    size_t count;
-} unifyfs_ioreq_result;
 
 /* I/O request structure */
 typedef struct unifyfs_io_request {
@@ -203,16 +196,45 @@ typedef struct unifyfs_io_request {
     /* internal fields */
     int _reqid;
 } unifyfs_io_request;
+```
+
+Clients submit I/O requests using `unifyfs_dispatch_io()`, which takes an array of request structures for the `reqs` parameter. The size of the array is given by `nreqs`. Any request having operation type `UNIFYFS_IOREQ_NOP` will be ignored. This method will return success if all valid requests have been dispatched. Upon return, the status of the request can be queried directly by accesing the `state` field. Dispatched requests will either be in-progress or completed.
+
+```C
+/* enumeration of I/O request states */
+typedef enum unifyfs_ioreq_state {
+    UNIFYFS_IOREQ_STATE_INVALID = 0,
+    UNIFYFS_IOREQ_STATE_IN_PROGRESS,
+    UNIFYFS_IOREQ_STATE_CANCELED,
+    UNIFYFS_IOREQ_STATE_COMPLETED
+} unifyfs_ioreq_state;
 
 /* Dispatch an array of I/O requests */
 unifyfs_rc unifyfs_dispatch_io(unifyfs_handle fshdl,
                                const size_t nreqs,
                                unifyfs_io_request* reqs);
+```
 
+Clients can attempt to cancel previously dispatched requests before they complete using `unifyfs_cancel_io()`. This method returns success if all cancellations are submitted. It does not wait for the cancellations to occur, and does not guarantee that requests will be canceled before completion. For operations that modify file contents (i.e., write, truncate, and zero-fill), successful cancellation implies no modifications to the file have occurred.
+
+```C
 /* Cancel an array of I/O requests */
 unifyfs_rc unifyfs_cancel_io(unifyfs_handle fshdl,
                              const size_t nreqs,
                              unifyfs_io_request* reqs);
+```
+
+Clients use `unifyfs_wait_io()` to wait for completion or cancellation of outstanding requests passed in the `reqs` array. The `waitall` parameter value specifies whether to wait for all requests (`waitall == 1`) before returning, or to return as soon as any request is completed/canceled (`waitall == 0`). Upon return, the status of each request can be queried directly by accesing its `state` field.
+
+Clients can obtain the results for completed requests by examining their `result` field, which is of type `unifyfs_ioreq_result`. The `rc` field of the result structure will be zero for successful operations, and non-zero otherwise. For operations that experienced failures, the `error` field of the result structure is set to the associated error code. For successful reads and writes, the `count` field stores the number of bytes actually read or written.
+
+```C
+/* structure to hold I/O request result values */
+typedef struct unifyfs_ioreq_result {
+    int error;
+    int rc;
+    size_t count;
+} unifyfs_ioreq_result;
 
 /* Wait for an array of I/O requests to be completed/canceled */
 unifyfs_rc unifyfs_wait_io(unifyfs_handle fshdl,
@@ -301,6 +323,10 @@ unifyfs_rc unifyfs_finalize(unifyfs_handle fshdl);
 ## Future Functionality
 
 In this section, we describe potential additions to the client API. This functionality may be included in future versions of the API based upon feedback on user requirements.
+
+### Asynchronous I/O Notification
+
+TODO
 
 ### Directory Operations
 
