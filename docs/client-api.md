@@ -183,7 +183,7 @@ typedef struct unifyfs_io_request {
     unifyfs_gfid gfid;
     unifyfs_ioreq_op op;
 
-    /* async callbacks (not yet supported)
+    /* async callbacks (future support)
      *
      * unifyfs_req_notify_fn fn;
      * void* notify_user_data;
@@ -263,7 +263,7 @@ unifyfs_rc unifyfs_laminate_local(unifyfs_handle fshdl,
 
 ### File Transfers
 
-File transfers in _UnifyFS_ are asynchronous and use a request structure, `unifyfs_transfer_request`, similar to that used for I/O requests. Each request structure specifies the transfer mode and the full paths of the source and destination files. The source or destination path must reference a file within the _UnifyFS_ namespace. Two modes of transfer are currently supported: copy and move. _Copy transfers_ simply copy a file into or out of _UnifyFS_. _Move transfers_ delete the source file after making a copy at the destination.
+File transfers in _UnifyFS_ are asynchronous and use a request structure, `unifyfs_transfer_request`, similar to that used for I/O requests. Each request structure specifies the transfer mode and the full paths of the source and destination files. The source or destination path must reference a file within the _UnifyFS_ namespace. Two modes of transfer are currently supported: copy and move. __Copy transfers__ simply copy a file into or out of _UnifyFS_. __Move transfers__ delete the source file after making a copy at the destination.
 
 ```C
 /* enumeration of supported I/O request operations */
@@ -280,7 +280,7 @@ typedef struct unifyfs_transfer_request {
     const char* dst_path;
     unifyfs_transfer_mode mode;
 
-    /* async callbacks (not yet supported)
+    /* async callbacks (future support)
      *
      * unifyfs_req_notify_fn fn;
      * void* notify_user_data;
@@ -338,17 +338,22 @@ unifyfs_rc unifyfs_finalize(unifyfs_handle fshdl);
 
 In this section, we describe potential additions to the client API. This functionality may be included in future versions of the API based upon feedback on user requirements.
 
-### Asynchronous I/O Notification
+### Asynchronous Notification
 
-TODO
+The asynchronous I/O and transfer request structures shown above contain two currently disabled fields to support asynchronous notification of request completion or cancellation via a user-supplied function of type `unifyfs_req_notify_fn`. The proposed prototype for notification functions follows. Clients may optionally supply a pointer to arbitrary data via the `notify_user_data` field, which would be passed to the function during request notification.
+
+```C
+typedef void (*unifyfs_req_notify_fn)(void* request,
+                                      void* user_data);
+```
 
 ### Directory Operations
 
-TODO
+The current API provides no methods for accessing or navigating directories. Clients implicitly define directories using the paths supplied to file creation or file transfers. We have considered adding convenience methods for directory walks (e.g., to support listing the files of a directory) and directory-based transfers. One potential interface is something similar to POSIX [`nftw()`][3], which would provide the ability to supply a user-defined function that operated on directory entries.
 
 ### Memory Mapped Files
 
-Mapping file data into memory (e.g., using `mmap()`) is a popular approach for maximizing read and write performance. _UnifyFS_ could support this behavior for non-shared files fairly easily. For shared files, it is likely that only non-overlapping mappings could be supported. The proposed APIs for memory mapping _UnifyFS_ files are shown below.
+Mapping file data into memory (e.g., using [`mmap()`][4]) is a popular approach for maximizing read and write performance. _UnifyFS_ could support this behavior for non-shared files fairly easily. For shared files, it is likely that only non-overlapping mappings could be supported. The proposed APIs for memory mapping _UnifyFS_ files are shown below.
 
 ```C
 /* Map global file contents into memory starting at given offset */
@@ -373,3 +378,5 @@ unifyfs_rc unifyfs_map_sync(unifyfs_handle fshdl,
 
 [1]: https://unifyfs.readthedocs.io/en/v0.9.0/overview.html
 [2]: https://unifyfs.readthedocs.io/en/v0.9.0/assumptions.html#consistency-model
+[3]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/nftw.html
+[4]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/mmap.html
