@@ -263,7 +263,7 @@ unifyfs_rc unifyfs_laminate_local(unifyfs_handle fshdl,
 
 ### File Transfers
 
-File transfers in _UnifyFS_ are also asynchronous, and use a request structure, `unifyfs_transfer_request`, similar to that used for I/O requests. Each request structure specifies the transfer mode and the full paths of the source and destination files. The source or destination path must reference a file within the _UnifyFS_ namespace. Two modes of transfer are currently supported: copy and move. _Copy transfers_ simply copy a file into or out of _UnifyFS_. _Move transfers_ delete the source file after making a copy at the destination.
+File transfers in _UnifyFS_ are asynchronous and use a request structure, `unifyfs_transfer_request`, similar to that used for I/O requests. Each request structure specifies the transfer mode and the full paths of the source and destination files. The source or destination path must reference a file within the _UnifyFS_ namespace. Two modes of transfer are currently supported: copy and move. _Copy transfers_ simply copy a file into or out of _UnifyFS_. _Move transfers_ delete the source file after making a copy at the destination.
 
 ```C
 /* enumeration of supported I/O request operations */
