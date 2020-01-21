@@ -198,7 +198,7 @@ typedef struct unifyfs_io_request {
 } unifyfs_io_request;
 ```
 
-Clients submit I/O requests using `unifyfs_dispatch_io()`, which takes an array of request structures for the `reqs` parameter. The size of the array is given by `nreqs`. Any request having operation type `UNIFYFS_IOREQ_NOP` will be ignored. This method will return success if all valid requests have been dispatched. Upon return, the status of the request can be queried directly by accesing the `state` field. Dispatched requests will either be in-progress or completed.
+Clients submit I/O requests using `unifyfs_dispatch_io()`, which takes an array of request structures for the `reqs` parameter. The size of the array is given as `nreqs`. Any request having operation type `UNIFYFS_IOREQ_NOP` will be ignored. This method will return success if all valid requests have been dispatched. Upon return, the status of each request can be queried directly by accesing its `state` field. Dispatched requests will either be in-progress or completed.
 
 ```C
 /* enumeration of I/O request states */
@@ -263,7 +263,7 @@ unifyfs_rc unifyfs_laminate_local(unifyfs_handle fshdl,
 
 ### File Transfers
 
-TODO
+File transfers in _UnifyFS_ are also asynchronous, and use a request structure, `unifyfs_transfer_request`, similar to that used for I/O requests. Each request structure specifies the transfer mode and the full paths of the source and destination files. The source or destination path must reference a file within the _UnifyFS_ namespace. Two modes of transfer are currently supported: copy and move. _Copy transfers_ simply copy a file into or out of _UnifyFS_. _Move transfers_ delete the source file after making a copy at the destination.
 
 ```C
 /* enumeration of supported I/O request operations */
@@ -293,17 +293,31 @@ typedef struct unifyfs_transfer_request {
     /* internal fields */
     int _reqid;
 } unifyfs_transfer_request;
+```
 
+Clients submit file transfer requests using `unifyfs_dispatch_transfer()`, which takes an array of request structures for the `reqs` parameter. The size of the array is given as `nreqs`. This method will return success if all valid requests have been dispatched. Upon return, the status of each request can be queried directly by accesing its `state` field. Dispatched requests will either be in-progress or completed.
+
+```C
 /* Dispatch an array of transfer requests */
 unifyfs_rc unifyfs_dispatch_transfer(unifyfs_handle fshdl,
                                      const size_t nreqs,
                                      unifyfs_transfer_request* reqs);
+```
 
+Clients can attempt to cancel previously dispatched requests before they complete using `unifyfs_cancel_transfer()`. This method returns success if all cancellations are submitted. It does not wait for the cancellations to occur, and does not guarantee that requests will be canceled before completion.
+
+```C
 /* Cancel an array of transfer requests */
 unifyfs_rc unifyfs_cancel_transfer(unifyfs_handle fshdl,
                                    const size_t nreqs,
                                    unifyfs_transfer_request* reqs);
+```
 
+Clients use `unifyfs_wait_transfer()` to wait for completion or cancellation of outstanding requests passed in the `reqs` array. The `waitall` parameter value specifies whether to wait for all requests (`waitall == 1`) before returning, or to return as soon as any request is completed/canceled (`waitall == 0`). Upon return, the status of each request can be queried directly by accesing its `state` field.
+
+Clients can obtain the results for completed requests by examining their `result` field. The `rc` field of the result structure will be zero for successful operations, and non-zero otherwise. For operations that experienced failures, the `error` field of the result structure is set to the associated error code. The `count` field is set to the size of the transferred file.
+
+```C
 /* Wait for an array of transfer requests to be completed/canceled */
 unifyfs_rc unifyfs_wait_transfer(unifyfs_handle fshdl,
                                  const size_t nreqs,
