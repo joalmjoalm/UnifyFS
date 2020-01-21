@@ -160,9 +160,9 @@ For each request, the client sets the `op` field of the structure to one of the 
 
 Read and write requests must initialize the `user_buf`, `nbytes`, and `offset` fields of the request structure to designate the destination/source data buffer, byte count, and starting file offset, respectively.
 
-Truncate requests need only initialize the `offset` field, to indicate the desired truncation offset.
+Truncate requests need only initialize the `offset` field to indicate the desired truncation offset.
 
-Zero-fill requests must initialize the `offset` and `nbytes` files, to specify the extent to be filled with zero bytes.
+Zero-fill requests must initialize the `offset` and `nbytes` files to specify the extent to be filled with zero bytes.
 
 ```C
 /* enumeration of supported I/O request operations */
